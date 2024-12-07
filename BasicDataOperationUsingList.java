@@ -7,7 +7,7 @@ import java.io.IOException;
 //import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+//import java.util.Collections;
 import java.util.List;
 
 /**
@@ -110,81 +110,89 @@ public class BasicDataOperationUsingList {
 
     void sortArray() {
         long startTime = System.nanoTime();
-
-        Arrays.sort(doubleArray);
-
+    
+        doubleArray = Arrays.stream(doubleArray)
+                            .sorted()
+                            .toArray();
+    
         Utils.printOperationDuration(startTime, "сортування масиву");
     }
 
     void searchArray() {
         long startTime = System.nanoTime();
-
-        int index = Arrays.binarySearch(doubleArray, valueToSearch);
-
+    
+        boolean found = Arrays.stream(doubleArray)
+                              .anyMatch(value -> value == valueToSearch);
+    
         Utils.printOperationDuration(startTime, "пошук в масиві");
-
-        if (index >= 0) {
-            System.out.println("Значення '" + valueToSearch + "' знайдено в масиві за індексом: " + index);
+    
+        if (found) {
+            System.out.println("Значення '" + valueToSearch + "' знайдено в масиві.");
         } else {
             System.out.println("Значення '" + valueToSearch + "' в масиві не знайдено.");
         }
     }
+    
 
     void findMinAndMaxInArray() {
         if (doubleArray == null || doubleArray.length == 0) {
             System.out.println("Масив порожній або не ініціалізований.");
             return;
         }
-
+    
         long startTime = System.nanoTime();
-
-        double min = Arrays.stream(doubleArray).min().orElseThrow();
-        double max = Arrays.stream(doubleArray).max().orElseThrow();
-
+    
+        double min = Arrays.stream(doubleArray).min().orElse(Double.NaN);
+        double max = Arrays.stream(doubleArray).max().orElse(Double.NaN);
+    
         Utils.printOperationDuration(startTime, "пошук мінімального і максимального в масиві");
-
+    
         System.out.println("Мінімальне значення в масиві: " + min);
         System.out.println("Максимальне значення в масиві: " + max);
     }
 
     void searchList() {
         long startTime = System.nanoTime();
-
-        int index = Collections.binarySearch(doubleList, valueToSearch);
-
+    
+        boolean found = doubleList.stream()
+                                  .anyMatch(value -> value == valueToSearch);
+    
         Utils.printOperationDuration(startTime, "пошук в ArrayList");
-
-        if (index >= 0) {
-            System.out.println("Значення '" + valueToSearch + "' знайдено в ArrayList за індексом: " + index);
+    
+        if (found) {
+            System.out.println("Значення '" + valueToSearch + "' знайдено в ArrayList.");
         } else {
             System.out.println("Значення '" + valueToSearch + "' в ArrayList не знайдено.");
         }
-    }
+    }    
 
     void findMinAndMaxInList() {
         if (doubleList == null || doubleList.isEmpty()) {
             System.out.println("ArrayList порожній або не ініціалізований.");
             return;
         }
-
+    
         long startTime = System.nanoTime();
-
-        double min = Collections.min(doubleList);
-        double max = Collections.max(doubleList);
-
+    
+        double min = doubleList.stream().min(Double::compareTo).orElse(Double.NaN);
+        double max = doubleList.stream().max(Double::compareTo).orElse(Double.NaN);
+    
         Utils.printOperationDuration(startTime, "пошук мінімального і максимального в ArrayList");
-
+    
         System.out.println("Мінімальне значення в ArrayList: " + min);
         System.out.println("Максимальне значення в ArrayList: " + max);
-    }
+    }    
 
     void sortList() {
         long startTime = System.nanoTime();
-
-        Collections.sort(doubleList);
-
+    
+        doubleList = doubleList.stream()
+                               .sorted()
+                               .toList(); // Java 16+
+    
         Utils.printOperationDuration(startTime, "сортування ArrayList");
-    }
+    }    
+    
 }
 
 /**
@@ -198,33 +206,30 @@ class Utils {
     }
 
     static double[] readArrayFromFile(String pathToFile) {
-        List<Double> tempList = new ArrayList<>();
-
         try (BufferedReader br = new BufferedReader(new FileReader(pathToFile))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                tempList.add(Double.parseDouble(line));
-            }
+            return br.lines()
+                     .mapToDouble(Double::parseDouble) // Парсимо кожний рядок у double
+                     .toArray();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Помилка читання файлу: " + pathToFile, e);
         }
-
-        double[] array = new double[tempList.size()];
-        for (int i = 0; i < tempList.size(); i++) {
-            array[i] = tempList.get(i);
-        }
-
-        return array;
     }
+    
 
     static void writeArrayToFile(double[] array, String pathToFile) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(pathToFile))) {
-            for (double d : array) {
-                writer.write(Double.toString(d));
-                writer.newLine();
-            }
+            Arrays.stream(array)
+                  .forEach(value -> {
+                      try {
+                          writer.write(Double.toString(value));
+                          writer.newLine();
+                      } catch (IOException e) {
+                          throw new RuntimeException("Помилка запису у файл: " + pathToFile, e);
+                      }
+                  });
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Помилка запису у файл: " + pathToFile, e);
         }
     }
+    
 }
