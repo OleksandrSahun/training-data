@@ -207,9 +207,9 @@ class Utils {
 
     static double[] readArrayFromFile(String pathToFile) {
         try (BufferedReader br = new BufferedReader(new FileReader(pathToFile))) {
-            return br.lines()
-                     .mapToDouble(Double::parseDouble) // Парсимо кожний рядок у double
-                     .toArray();
+            return br.lines()                             // Читаємо всі рядки як стрім
+                     .mapToDouble(Double::parseDouble)    // Парсимо кожен рядок у double
+                     .toArray();                          // Перетворюємо в масив double[]
         } catch (IOException e) {
             throw new RuntimeException("Помилка читання файлу: " + pathToFile, e);
         }
